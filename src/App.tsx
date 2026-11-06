@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link, Navigate, Route, Routes, useParams } from "react-router-dom";
 import {
   ArcElement,
   BarElement,
@@ -85,6 +86,95 @@ const barOptions: ChartOptions<"bar"> = {
     y: { grid: { display: false }, ticks: { color: "#475467" } }
   }
 };
+
+function suiteRouteId(name: string): string {
+  return name.toLowerCase().replaceAll(" ", "-");
+}
+
+function ReportDetail({
+  summary,
+  status,
+  message,
+  onRetry
+}: {
+  summary: ReportSummary | null;
+  status: "waiting" | "loading" | "ready" | "error";
+  message: string | null;
+  onRetry: () => void;
+}) {
+  const { reportId } = useParams();
+  const suite = summary?.suites.find((item) => suiteRouteId(item.name) === reportId);
+
+  return (
+    <div className="reports">
+      <Link className="reports-back-link" to="/dashboard/test-reports">
+        ← Back to Test Reports
+      </Link>
+      {status === "loading" && (
+        <section className="service-status" aria-live="polite">
+          <span className="spinner" aria-hidden="true" />
+          <div>
+            <strong>Loading report details</strong>
+            <p>Fetching suite results from the reports service…</p>
+          </div>
+        </section>
+      )}
+      {status === "error" && (
+        <section className="service-status service-status-error" role="alert">
+          <div>
+            <strong>Could not load report details</strong>
+            <p>{message}</p>
+          </div>
+          <button className="status-action" onClick={onRetry} type="button">
+            Retry
+          </button>
+        </section>
+      )}
+      {status === "ready" && summary && suite && (
+        <>
+          <header className="reports-heading">
+            <span className="eyebrow">SUITE REPORT</span>
+            <h1>{suite.name} results</h1>
+            <p className="description">
+              Generated {new Date(summary.generated_at).toLocaleString()}. Sample data is
+              randomized for demonstration.
+            </p>
+          </header>
+          <section className="summary-grid" aria-label={`${suite.name} execution totals`}>
+            <article className="summary-card">
+              <span>Executed</span>
+              <strong>{(suite.passed + suite.failed + suite.skipped).toLocaleString()}</strong>
+              <small>Across the seven-day report</small>
+            </article>
+            <article className="summary-card summary-card-passed">
+              <span>Passed</span>
+              <strong>{suite.passed.toLocaleString()}</strong>
+              <small>Successful test executions</small>
+            </article>
+            <article className="summary-card summary-card-failed">
+              <span>Failed</span>
+              <strong>{suite.failed.toLocaleString()}</strong>
+              <small>Executions needing attention</small>
+            </article>
+            <article className="summary-card summary-card-rate">
+              <span>Skipped</span>
+              <strong>{suite.skipped.toLocaleString()}</strong>
+              <small>Not run in this sample</small>
+            </article>
+          </section>
+        </>
+      )}
+      {status === "ready" && !suite && (
+        <section className="service-status service-status-error" role="alert">
+          <div>
+            <strong>Report not found</strong>
+            <p>No suite report matches “{reportId}”.</p>
+          </div>
+        </section>
+      )}
+    </div>
+  );
+}
 
 export default function App({ getAccessToken }: AppProps) {
   const [status, setStatus] = useState<"waiting" | "loading" | "ready" | "error">(
@@ -184,7 +274,22 @@ export default function App({ getAccessToken }: AppProps) {
     : null;
 
   return (
-    <div className="reports">
+    <Routes>
+      <Route
+        path="/:reportId"
+        element={
+          <ReportDetail
+            summary={summary}
+            status={status}
+            message={message}
+            onRetry={() => setRetryCount((count) => count + 1)}
+          />
+        }
+      />
+      <Route
+        index
+        element={
+          <div className="reports">
       <header className="reports-heading">
         <span className="eyebrow">QUALITY REPORTING</span>
         <h1>Test Reports</h1>
@@ -250,6 +355,23 @@ export default function App({ getAccessToken }: AppProps) {
             </article>
           </section>
 
+          <section className="suite-report-grid" aria-label="Suite report details">
+            {summary.suites.map((suite) => (
+              <Link
+                className="suite-report-card"
+                key={suite.name}
+                to={`/dashboard/test-reports/${suiteRouteId(suite.name)}`}
+              >
+                <span className="eyebrow">SUITE REPORT</span>
+                <strong>{suite.name}</strong>
+                <small>
+                  {suite.passed} passed · {suite.failed} failed · {suite.skipped} skipped
+                </small>
+                <span className="suite-report-action">View report →</span>
+              </Link>
+            ))}
+          </section>
+
           <section className="charts-grid" aria-label="Test report charts">
             {lineData && (
               <article className="chart-card chart-card-wide">
@@ -287,6 +409,13 @@ export default function App({ getAccessToken }: AppProps) {
           </section>
         </>
       )}
-    </div>
+          </div>
+        }
+      />
+      <Route
+        path="*"
+        element={<Navigate to="/dashboard/test-reports" replace />}
+      />
+    </Routes>
   );
 }

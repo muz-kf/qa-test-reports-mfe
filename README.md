@@ -15,5 +15,11 @@ Reports from the QA Pulse dashboard. The report API returns a freshly
 generated seven-day test execution snapshot; the MFE shows summary cards, an
 outcome doughnut, an execution trend line, and results by suite.
 
+The MFE uses the host's shared React Router context. Its routes are
+`/dashboard/test-reports` for the summary and
+`/dashboard/test-reports/:reportId` for a suite detail view. Suite
+cards link to these parameterized detail pages. The standalone entry point
+provides a matching route wrapper for local testing.
+
 Run `npm test` for a TypeScript check and `npm run build` for a production
 build.

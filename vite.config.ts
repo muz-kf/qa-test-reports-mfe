@@ -9,7 +9,7 @@ export default defineConfig({
       name: "qa_test_reports",
       filename: "remoteEntry.js",
       exposes: { "./App": "./src/App.tsx" },
-      shared: ["react", "react-dom"]
+      shared: ["react", "react-dom", "react-router-dom"]
     })
   ],
   server: {
