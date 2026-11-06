@@ -17,9 +17,12 @@ outcome doughnut, an execution trend line, and results by suite.
 
 The MFE uses the host's shared React Router context. Its routes are
 `/dashboard/test-reports` for the summary and
-`/dashboard/test-reports/:reportId` for a suite detail view. Suite
-cards link to these parameterized detail pages. The standalone entry point
-provides a matching route wrapper for local testing.
+`/dashboard/test-reports/:reportId` for a suite detail view.
+`/dashboard/test-reports/third-party-views` provides four tabbed iframe
+placeholders; replace the demo data URLs in `src/App.tsx` with the connected
+service URLs when they are available. Suite cards link to the parameterized
+detail pages. The standalone entry point provides a matching route wrapper
+for local testing.
 
 Run `npm test` for a TypeScript check and `npm run build` for a production
 build.

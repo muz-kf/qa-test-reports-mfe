@@ -91,6 +91,70 @@ function suiteRouteId(name: string): string {
   return name.toLowerCase().replaceAll(" ", "-");
 }
 
+const thirdPartyViews = [
+  { id: "overview", label: "Overview", url:"https://github.com", title: "Third-party overview" },
+  { id: "activity", label: "Activity", url:"https://www.atlassian.com/software", title: "Recent activity" },
+  { id: "issues", label: "Issues", url:"https://play.tailwindcss.com/", title: "Open issues" },
+  { id: "quality", label: "Quality", url:"https://www.w3schools.com/", title: "Quality metrics" }
+].map((view,) => {
+
+  return {
+    ...view,
+    // url: `data:text/html;charset=utf-8,${encodeURIComponent(html)}`
+  };
+});
+
+function ThirdPartyViews() {
+  const [activeViewId, setActiveViewId] = useState(thirdPartyViews[0].id);
+  const activeView = thirdPartyViews.find((view) => view.id === activeViewId)!;
+
+  return (
+    <div className="reports">
+      <Link className="reports-back-link" to="/dashboard">
+        ← Back to dashboard
+      </Link>
+      <header className="reports-heading">
+        <span className="eyebrow">CONNECTED REPORTING</span>
+        <h1>3rd Party Views</h1>
+        <p className="description">
+          Open connected dashboards and reports in one place.
+        </p>
+      </header>
+      <div className="third-party-tabs" role="tablist" aria-label="Third-party views">
+        {thirdPartyViews.map((view) => (
+          <button
+            aria-controls="third-party-view-panel"
+            aria-selected={activeView.id === view.id}
+            className="third-party-tab"
+            id={`third-party-tab-${view.id}`}
+            key={view.id}
+            onClick={() => setActiveViewId(view.id)}
+            role="tab"
+            type="button"
+          >
+            {view.label}
+          </button>
+        ))}
+      </div>
+      <section
+        aria-labelledby={`third-party-tab-${activeView.id}`}
+        className="third-party-frame"
+        id="third-party-view-panel"
+        role="tabpanel"
+      >
+        <iframe
+          key={activeView.id}
+          loading="lazy"
+          referrerPolicy="no-referrer"
+          sandbox=""
+          src={activeView.url}
+          title={activeView.label}
+        />
+      </section>
+    </div>
+  );
+}
+
 function ReportDetail({
   summary,
   status,
@@ -275,6 +339,7 @@ export default function App({ getAccessToken }: AppProps) {
 
   return (
     <Routes>
+      <Route path="third-party-views" element={<ThirdPartyViews />} />
       <Route
         path="/:reportId"
         element={
